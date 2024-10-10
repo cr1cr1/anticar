@@ -2,13 +2,15 @@ package main
 
 import (
 	"database/sql"
-	"log"
+	"flag"
+	"fmt"
 
 	_ "github.com/mattn/go-sqlite3"
 
 	"github.com/a-h/templ"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/adaptor"
+	"github.com/rs/zerolog/log"
 )
 
 type User struct {
@@ -23,13 +25,17 @@ func (u *User) Login() string {
 }
 
 func main() {
+	// Flags
+	preloadDB := flag.Bool("preload", false, "Preload the database with mock users")
+	flag.Parse()
+
 	// Initialize a new Fiber app
 	app := fiber.New()
 
 	// Initialize SQLite database
 	db, err := sql.Open("sqlite3", "./users.db")
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal().Err(err).Msg("failed to open database")
 	}
 	defer db.Close()
 
@@ -41,11 +47,13 @@ func main() {
         password TEXT
     )`)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal().Err(err).Msg("failed to create users table")
 	}
 
-	// Insert mock users
-	insertMockUsers(db)
+	if *preloadDB {
+		// Insert mock users
+		insertMockUsers(db)
+	}
 
 	// Home page route
 	app.Get("/", func(c *fiber.Ctx) error {
@@ -101,7 +109,7 @@ func main() {
 	})
 
 	// Start the server on port 3000
-	log.Fatal(app.Listen(":3000"))
+	log.Fatal().Err(app.Listen(":3000")).Msg("failed to start server")
 }
 
 // getUserFromDB fetches a user from the database by ID
@@ -119,11 +127,13 @@ func getUserFromDB(db *sql.DB, userID int) (*User, error) {
 
 // insertMockUsers inserts 10 mock users into the database
 func insertMockUsers(db *sql.DB) {
+	log.Info().Msg("Inserting mock users into the database")
 	for i := 1; i <= 10; i++ {
+		id := fmt.Sprintf("%d", i)
 		_, err := db.Exec("INSERT INTO users (name, email, password) VALUES (?, ?, ?)",
-			"User"+string(i), "user"+string(i)+"@example.com", "password"+string(i))
+			"User"+id, "user"+id+"@example.com", "password"+id)
 		if err != nil {
-			log.Fatal(err)
+			log.Fatal().Err(err).Msg("failed to insert mock users")
 		}
 	}
 }

@@ -6,6 +6,7 @@ require (
 	github.com/a-h/templ v0.2.778
 	github.com/gofiber/fiber/v2 v2.52.5
 	github.com/mattn/go-sqlite3 v1.14.24
+	github.com/rs/zerolog v1.33.0
 )
 
 require (
