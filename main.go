@@ -10,6 +10,7 @@ import (
 	"github.com/a-h/templ"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/adaptor"
+	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/rs/zerolog/log"
 )
 
@@ -31,6 +32,8 @@ func main() {
 
 	// Initialize a new Fiber app
 	app := fiber.New()
+
+	app.Use(logger.New())
 
 	// Initialize SQLite database
 	db, err := sql.Open("sqlite3", "./users.db")
